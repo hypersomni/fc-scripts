@@ -44,6 +44,7 @@ end
 cards = stories.map do |story|
   attrs =  { :title  => story[1]   || '',
              :labels => story[2] || '',
+             :id     => story[0] || '',
              :body   => story[13]  || '',
              :type   => story[6]   || '',
              :points => story[7]   || '...',
@@ -95,6 +96,7 @@ Prawn::Document.generate("#{outfile}.pdf",
       cell = pdf.grid( row, column )
       cell.bounding_box do
 
+      #--- Create coloured rectangles for background colour of card dependent on card.type
         pdf.stroke_color = "666666"
  if card.type == "feature"
         pdf.fill_color "00FF66"
@@ -107,19 +109,18 @@ Prawn::Document.generate("#{outfile}.pdf",
         else
         end
         pdf.fill_rectangle [0,240], 375, 240
+        #creates borders for box
         pdf.stroke_bounds
 
         # --- Write content
         pdf.bounding_box [pdf.bounds.left+padding, pdf.bounds.top-padding], :width => cell.width-padding*2 do
           pdf.fill_color = "000000"
-          pdf.text card.title, :size => 20
-          pdf.text "\n", :size => 14
+          pdf.text card.title + " ["+ card.id + "]", :size => 18
           pdf.fill_color "000000"
-          #pdf.text card.body, :size => 10
+
 
         end
- #pdf.image "#{Prawn::BASEDIR}/data/images/seal.jpg",
-          #:at => [150, 200]
+
  pdf.text_box card.body,
           :size => 10, :at => [12, 160], :width => cell.width-18, :height => 75, :overflow => [:truncate]
 
@@ -130,10 +131,9 @@ Prawn::Document.generate("#{outfile}.pdf",
           :size => 12, :at => [12, 50], :width => cell.width-18
         pdf.text_box "Requester: " + card.owner,
           :size => 8, :at => [12, 18], :width => cell.width-18
-        #pdf.image "#{Prawn::BASEDIR}/data/images/seal.jpg",
-        pdf.fill_color "999999"
-        pdf.text_box card.type.capitalize,  :size => 8,  :align => :right, :at => [12, 18], :width => cell.width-18
         pdf.fill_color "000000"
+        pdf.text_box card.type.capitalize,  :size => 12,  :align => :right, :at => [12, 18], :width => cell.width-18
+        pdf.image "#{Prawn::DATADIR}/images/seal.jpg", :scale => 0.01, :at => [185, 35]
 
       end
 
