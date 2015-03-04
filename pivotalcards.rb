@@ -1,11 +1,10 @@
 #!/usr/bin/env ruby
 
 # Script to generate PDF cards suitable for planning poker
+#Customized for the CRM team at Funding Circle
 # from Pivotal Tracker [http://www.pivotaltracker.com/] CSV export.
 
 # Inspired by Bryan Helmkamp's http://github.com/brynary/features2cards/
-
-# Example output: http://img.skitch.com/20100522-d1kkhfu6yub7gpye97ikfuubi2.png
 
 require 'rubygems'
 require 'csv'
@@ -44,8 +43,8 @@ end
 cards = stories.map do |story|
   attrs =  { :title  => story[1]   || '',
              :labels => story[2] || '',
-             :id     => story[0] || '',
              :body   => story[13]  || '',
+             :tasks   => story[20]  || '',
              :type   => story[6]   || '',
              :points => story[7]   || '...',
              :owner  => story[12]  || '.'*50}
@@ -96,7 +95,6 @@ Prawn::Document.generate("#{outfile}.pdf",
       cell = pdf.grid( row, column )
       cell.bounding_box do
 
-      #--- Create coloured rectangles for background colour of card dependent on card.type
         pdf.stroke_color = "666666"
  if card.type == "feature"
         pdf.fill_color "00FF66"
@@ -109,35 +107,34 @@ Prawn::Document.generate("#{outfile}.pdf",
         else
         end
         pdf.fill_rectangle [0,240], 375, 240
-        #creates borders for box
         pdf.stroke_bounds
 
         # --- Write content
         pdf.bounding_box [pdf.bounds.left+padding, pdf.bounds.top-padding], :width => cell.width-padding*2 do
           pdf.fill_color = "000000"
-          pdf.text card.title + " ["+ card.id + "]", :size => 18
+          pdf.text card.title, :size => 20
+          pdf.text "\n", :size => 14
           pdf.fill_color "000000"
-
 
         end
 
  pdf.text_box card.body,
           :size => 10, :at => [12, 160], :width => cell.width-18, :height => 75, :overflow => [:truncate]
-
- pdf.text_box "Labels: " + card.labels,
-          :size => 10, :at => [12, 80], :width => cell.width-18
-
- pdf.text_box "Points: " + card.points,
-          :size => 12, :at => [12, 50], :width => cell.width-18
-        pdf.text_box "Requester: " + card.owner,
-          :size => 8, :at => [12, 18], :width => cell.width-18
-        pdf.fill_color "000000"
-        pdf.text_box card.type.capitalize,  :size => 12,  :align => :right, :at => [12, 18], :width => cell.width-18
-        pdf.image "#{Prawn::DATADIR}/images/seal.jpg", :scale => 0.01, :at => [185, 35]
-
-      end
-
+    if card.tasks != ""
+      pdf.text_box "Tasks:" + card.tasks,
+        :size => 10, :at => [12, 100], :width => cell.width-18
     end
+
+        pdf.fill_color "E60000"
+          pdf.text_box card.labels,
+          :size => 18, :at => [12, 50], :width => cell.width-18
+        pdf.fill_color "999999"
+          pdf.text_box "Points: " + card.points,
+          :size => 12, :at => [12, 18], :align => :right, :width => cell.width-18 
+
+  end
+
+end
 
     # --- Footer
     pdf.number_pages "#{outfile}.pdf", {at: [pdf.bounds.left,  -28]}
